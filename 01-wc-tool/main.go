@@ -18,21 +18,13 @@ var (
 	getCharsCount bool
 )
 
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func getFileCounts(file *os.File) (bytesCount int, linesCount int, wordsCount int, charsCount int) {
+func getFileCounts(reader *bufio.Reader) (bytesCount int, linesCount int, wordsCount int, charsCount int) {
 	bytesCount = 0
 	linesCount = 0
 	wordsCount = 0
 	charsCount = 0
 
 	inWord := false
-
-	reader := bufio.NewReader(file)
 
 	for {
 		char, size, err := reader.ReadRune()
@@ -65,36 +57,54 @@ func main() {
 	flag.BoolVar(&getLinesCount, "l", false, "print the newline counts")
 	flag.BoolVar(&getWordsCount, "w", false, "print the word counts")
 	flag.BoolVar(&getCharsCount, "m", false, "print the character counts")
+	flag.Usage = func() {
+		w := flag.CommandLine.Output()
+		fmt.Fprintf(w, "Usage: ccwc [OPTION]... [FILE]...\n")
+		flag.PrintDefaults()
+	}
 	flag.Parse()
-	fileName := flag.Args()[0]
+
 	if !getBytesCount && !getLinesCount && !getWordsCount && !getCharsCount {
 		getBytesCount = true
 		getLinesCount = true
 		getWordsCount = true
-		getCharsCount = true
 	}
 
-	file, err := os.Open(fileName)
-	check(err)
-	defer file.Close()
+	var reader *bufio.Reader
+	var fileName string
 
-	bytesCount, linesCount, wordsCount, charsCount := getFileCounts(file)
+	if len(flag.Args()) != 0 {
+		fileName = flag.Args()[0]
+		file, err := os.Open(fileName)
+		if err != nil {
+			os.Stderr.WriteString("Error: " + err.Error() + "\n")
+			os.Exit(1)
+		}
+		defer file.Close()
+
+		reader = bufio.NewReader(file)
+	} else {
+		reader = bufio.NewReader(os.Stdin)
+	}
+	bytesCount, linesCount, wordsCount, charsCount := getFileCounts(reader)
 
 	var output []string
 
-	if getBytesCount {
-		output = append(output, strconv.Itoa(bytesCount))
-	}
 	if getLinesCount {
 		output = append(output, strconv.Itoa(linesCount))
 	}
 	if getWordsCount {
 		output = append(output, strconv.Itoa(wordsCount))
 	}
+	if getBytesCount {
+		output = append(output, strconv.Itoa(bytesCount))
+	}
 	if getCharsCount {
 		output = append(output, strconv.Itoa(charsCount))
 	}
-	output = append(output, filepath.Base(fileName))
+	if fileName != "" {
+		output = append(output, filepath.Base(fileName))
+	}
 
 	fmt.Println(strings.Join(output, " "))
 }

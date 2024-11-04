@@ -1,107 +1,114 @@
-# Build Your Own wc Tool
+# ccwc - A Custom Implementation of the `wc` Command
 
-This challenge is to build your own version of the Unix command line tool `wc`!
+## Overview
 
-The Unix command line tools are a great metaphor for good software engineering and they follow the Unix Philosophies of:
+`ccwc` is a simplified implementation of the Unix `wc` (word count) command line tool. This tool allows you to count the number of bytes, lines, words, and characters in a given file or from standard input, following the Unix Philosophy of building simple, modular tools.
 
-- Writing simple parts connected by clean interfaces - each tool does just one thing and provides a simple CLI that handles text input from either files or file streams.
-- Designing programs to be connected to other programs - each tool can be easily connected to other tools to create incredibly powerful compositions.
+## Features
 
-Following these philosophies has made the simple Unix command line tools some of the most widely used software engineering tools - allowing us to create very complex text data processing pipelines from simple command line tools. There’s even a Coursera course on Linux and Bash for Data Engineering.
+- **Byte Count (`-c`)**: Outputs the number of bytes in the input file.
+- **Line Count (`-l`)**: Outputs the number of lines in the input file.
+- **Word Count (`-w`)**: Outputs the number of words in the input file.
+- **Character Count (`-m`)**: Outputs the number of characters in the input file (supports multibyte characters if your locale allows).
+- **Default Mode**: When no options are provided, `ccwc` displays the byte, line, and word counts.
+- **Standard Input Support**: If no filename is provided, `ccwc` reads from standard input.
 
-You can read more about the Unix Philosophy in the excellent book *The Art of Unix Programming*.
+## Installation
 
-## The Challenge - Building `wc`
-
-The functional requirements for `wc` are concisely described by its man page - give it a go in your local terminal now:
-
-```sh
-man wc
-```
-
-The TL;DR version is: `wc` – word, line, character, and byte count. You can see the result in action in the video below:
-
-## Step Zero
-
-Like all good software engineering we’re zero indexed! In this step you’re going to set your environment up ready to begin developing and testing your solution.
-
-I’ll leave you to setup your IDE/editor of choice and programming language of choice. After that here’s what I’d like you to do to be ready to test your solution.
-
-Download this text and save it as `test.txt`.
-
-## Step One
-
-In this step your goal is to write a simple version of `wc`, let’s call it `ccwc` (cc for Coding Challenges) that takes the command line option `-c` and outputs the number of bytes in a file.
-
-If you’ve done it right your output should match this:
+To install `ccwc`, ensure you have [Go](https://golang.org/dl/) installed on your system. Then, clone this repository and build the tool:
 
 ```sh
-ccwc -c test.txt
-342190 test.txt
+go build -o ccwc
 ```
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! On to…
+This will generate an executable named `ccwc` in the current directory.
 
-## Step Two
+## Usage
 
-In this step your goal is to support the command line option `-l` that outputs the number of lines in a file.
-
-If you’ve done it right your output should match this:
+The basic usage of `ccwc` is:
 
 ```sh
-ccwc -l test.txt
-7145 test.txt
+./ccwc [OPTIONS] [FILE]
 ```
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! On to…
+### Options
 
-## Step Three
+- `-c`: Print the byte count.
+- `-l`: Print the line count.
+- `-w`: Print the word count.
+- `-m`: Print the character count.
 
-In this step your goal is to support the command line option `-w` that outputs the number of words in a file. If you’ve done it right your output should match this:
+### Examples
 
-```sh
-ccwc -w test.txt
-58164 test.txt
-```
+1. **Count bytes in a file**:
+   ```sh
+   ./ccwc -c test.txt
+   ```
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! On to…
+   **Output**:
+   ```
+   342190 test.txt
+   ```
 
-## Step Four
+2. **Count lines in a file**:
+   ```sh
+   ./ccwc -l test.txt
+   ```
 
-In this step your goal is to support the command line option `-m` that outputs the number of characters in a file. If the current locale does not support multibyte characters this will match the `-c` option.
+   **Output**:
+   ```
+   7145 test.txt
+   ```
 
-You can learn more about programming for locales [here](https://www.gnu.org/software/libc/manual/html_node/Locales.html).
+3. **Count words in a file**:
+   ```sh
+   ./ccwc -w test.txt
+   ```
 
-For this one your answer will depend on your locale, so if you can, use `wc` itself and compare the output to your solution:
+   **Output**:
+   ```
+   58164 test.txt
+   ```
 
-```sh
-wc -m test.txt
-339292 test.txt
+4. **Count characters in a file**:
+   ```sh
+   ./ccwc -m test.txt
+   ```
 
-ccwc -m test.txt
-339292 test.txt
-```
+   **Output**:
+   ```
+   339292 test.txt
+   ```
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! On to…
+5. **Run without options** (defaults to `-c`, `-l`, `-w`):
+   ```sh
+   ./ccwc test.txt
+   ```
 
-## Step Five
+   **Output**:
+   ```
+   7145 58164 342190 test.txt
+   ```
 
-In this step your goal is to support the default option - i.e. no options are provided, which is the equivalent to the `-c`, `-l` and `-w` options. If you’ve done it right your output should match this:
+6. **Read from standard input**:
+   ```sh
+   cat test.txt | ./ccwc -l
+   ```
 
-```sh
-ccwc test.txt
-7145 58164 342190 test.txt
-```
+   **Output**:
+   ```
+   7145
+   ```
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! On to…
+## Code Overview
 
-## The Final Step
+The `ccwc` tool is implemented in Go and uses `bufio` to efficiently read files and standard input. The main function handles:
 
-In this step your goal is to support being able to read from standard input if no filename is specified. If you’ve done it right your output should match this:
+- Parsing command line arguments using `flag`.
+- Opening the specified file or reading from standard input.
+- Counting bytes, lines, words, and characters using a custom function `getFileCounts`.
 
-```sh
-cat test.txt | ccwc -l
-7145
-```
+### Key Functions
 
-If it doesn’t, check your code, fix any bugs and try again. If it does, congratulations! You’ve done it, pat yourself on the back, job well done!
+- **`getFileCounts(reader *bufio.Reader)`**: Reads the input and returns the counts for bytes, lines, words, and characters.
+- **`main()`**: The entry point that sets up command-line parsing, handles file reading, and prints results based on specified options.
